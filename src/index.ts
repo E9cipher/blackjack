@@ -2,6 +2,9 @@ import * as readline from 'node:readline/promises'
 import { Player } from './Player';
 import { Blackjack, Outcome } from './Blackjack';
 import { Hand } from './Hand';
+import { MenuChoice } from './Enums';
+import { exit } from 'node:process';
+import { time } from 'node:console';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -9,19 +12,43 @@ const rl = readline.createInterface({
 });
 
 function printHand(label: string, hand: Hand): string {
-    return (`${label}: ${hand.cards.map(c => c.toString()).join("  ")}`)
+    return (`${label}: ${hand.cards.map(c => c.toString()).join("  ")}  . Sum: ${hand.value}`);
 }
 
 function printHiddenDealerHand(hand: Hand): string {
     return (`${hand.cards[0]}  ??`);
 }
 
-async function main() {
-    let amount: number = 0;
-    const player = new Player(100);
-    const blackjack = new Blackjack([player]);
-    let playAgain = true;
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+async function menu(): Promise<MenuChoice> {
+    console.clear();
+    console.log(`Avaliable options:
+    1) Game
+    2) Balance
+    3) Settings
+    4) Exit
+    `);
+    const answer = await rl.question("Choose an option: ");
+    switch (answer) {
+        case '1':
+            return MenuChoice.Game;
+        case '2':
+            return MenuChoice.Balance;
+        case '3':
+            return MenuChoice.Settings
+        case '4':
+            return MenuChoice.Exit
+        default:
+            return MenuChoice.Invalid
+    }
+}
+
+async function game(player: Player, blackjack: Blackjack): Promise<void> {
+    let amount: number = 0;
+    let playAgain = true;
     do {
         /** Bet prompting logic */
         while (true) {
@@ -40,7 +67,7 @@ async function main() {
 
         /** Start blackjack round */
         blackjack.startRound();
-        console.log(`${printHand("PLAYER: ", player.hand)} . DEALER: ${printHiddenDealerHand(blackjack.dealerHand)}`);
+        console.log(`${printHand("PLAYER: ", player.hand)} . \nDEALER: ${printHiddenDealerHand(blackjack.dealerHand)}`);
         while (!player.isDone) {
             const ans = await rl.question("(h)it or (s)tand? ");
             switch (ans) {
@@ -58,7 +85,7 @@ async function main() {
                     console.log(`Invalid choice: ${ans}`);
                     continue;
             }
-            console.log(`CURRENT HAND: ${printHand("", player.hand)}. Sum: ${player.hand.value}`);
+            console.log(`${printHand("CURRENT HAND: ", player.hand)}  Sum: ${player.hand.value}`);
         }
 
         /** Dealer's turn */
@@ -66,7 +93,7 @@ async function main() {
             blackjack.dealerPlay();
         }
 
-        console.log(printHand("DEALER hand: ", blackjack.dealerHand) + `Sum: ${blackjack.dealerHand.value}`);
+        console.log(printHand("DEALER hand: ", blackjack.dealerHand) + `  Sum: ${blackjack.dealerHand.value}`);
 
         const outcome = blackjack.round(player);
         let msg: string;
@@ -94,12 +121,40 @@ async function main() {
             console.log(`Your current balance is: ${player.chips}`);
             // Play Again?
             playAgain = (await rl.question("Play Again? (y/N) ")).toLowerCase() === "y";
-        }        
+        }
 
     } while (playAgain)
-        console.log("Bye!");
+}
 
-    rl.close();
+async function main(): Promise<void> {
+    const player = new Player(100);
+    const blackjack = new Blackjack([player]);
+
+    /** Greeting */
+    console.log("Welcome.");
+    while (true) {
+        /** Menu */
+        let choice = await menu();
+        while (choice === MenuChoice.Invalid) {
+            choice = await menu();
+        }
+
+        switch (choice) {
+            case MenuChoice.Game:
+                await game(player, blackjack);
+            case MenuChoice.Balance:
+                console.log(`Your current balance is: ${player.chips}`);
+                await sleep(1500);
+                break;
+            case MenuChoice.Settings:
+                console.log(`Settings not avaliable yet.`)
+                break;
+            case MenuChoice.Exit:
+                console.log("Bye!");
+                rl.close();
+                exit();
+        }
+    }
 }
 
 // Main logic
