@@ -3,17 +3,17 @@ import { Deck } from "./Deck";
 import { Hand } from "./Hand";
 import { Person } from "./Person";
 import { Player } from "./Player";
+import { Outcome } from "./Enums";
 
-export enum Outcome {
-    PlayerWin,
-    DealerWin,
-    Push,
-    PlayerBlackjack
-}
-
+/**
+ * The main game logic for Blackjack. Handles the deck, dealer, and players.
+ */
 export class Blackjack {
+    /** The deck that will be used in the game */
     private deck: Deck;
+    /** The dealer player */
     private dealer: Dealer;
+    /** The normal players */
     private players: Player[];
 
     constructor(players: Player[]) {
@@ -22,10 +22,17 @@ export class Blackjack {
         this.players = players;
     }
 
+    /**
+     * Deals a random card from the deck to a specified Person
+     * @param person the whom to deal the card to
+     */
     private dealCard(person: Person) {
         person.hand.addCard(this.deck.draw());
     }
 
+    /**
+     * Start a blackjack round.
+     */
     startRound(): void {
         this.deck.shuffle(); // shuffle
         this.dealer.hand.reset(); // reset dealer's hand
@@ -42,8 +49,10 @@ export class Blackjack {
         }
     }
 
-    /** Draw a card to a player, and check if it busts
-     * @param {Player} player
+    /**
+     * Draw a card to a player, and check if it busts
+     * 
+     * @param player - the player in question
      * @returns {boolean} false if the player busted, true otherwise
      */
     playerHit(player: Player): boolean {
@@ -51,14 +60,17 @@ export class Blackjack {
         return !player.hand.isBust ? true : (player.isDone = true, false);
     }
 
-    /** Stand a player
-     * @param {Player} player
+    /**
+     * Stand a player
+     * 
+     * @param player - the player in question
      */
     playerStand(player: Player): void {
         player.isDone = true;
     }
 
-    /** Play the dealer's turn
+    /**
+     * Play the dealer's turn
      *  @returns {boolean} true if the dealer busted, false otherwise
      */
     dealerPlay(): boolean {
@@ -66,6 +78,11 @@ export class Blackjack {
         return this.dealer.hand.isBust;
     }
 
+    /**
+     * Resolves this round and returns the Outcome
+     * @param player - the player in question
+     * @returns the {@link Outcome} of this round
+     */
     resolveRound(player: Player): Outcome {
         if (player.hand.isBust) return Outcome.DealerWin
         else if (player.hand.isBlackjack && !this.dealer.hand.isBlackjack) return Outcome.PlayerBlackjack;
@@ -75,6 +92,12 @@ export class Blackjack {
         else return Outcome.Push;
     }
 
+    /**
+     * Pays the respective amount of money to the players based on the Outcome
+     * 
+     * @param player - the player in question
+     * @param outcome the {@link Outcome} of the result
+     */
     private payout(player: Player, outcome: Outcome): void {
         switch (outcome) {
             case Outcome.PlayerBlackjack: player.win(1.5); break;
@@ -84,12 +107,23 @@ export class Blackjack {
         }
     }
 
+    /**
+     * Handles post-round payment
+     * 
+     * @param player - the player in question
+     * @returns the {@link Outcome} of this round
+     */
     round(player: Player): Outcome {
         const outcome = this.resolveRound(player);
         this.payout(player, outcome);
         return outcome;
     }
 
+    /**
+     * Get the dealer's true hand
+     * 
+     * @returns the dealer hand
+     */
     get dealerHand(): Hand {
         return this.dealer.hand;
     }
