@@ -10,7 +10,9 @@
   "devDependencies": {
     "@types/node": "^26.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "prettier": "^3.3.3",
+    "eslint": "^9.9.0"
   },
   "scripts": {
     "build": "tsc",
