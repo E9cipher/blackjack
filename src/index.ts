@@ -105,7 +105,7 @@ async function game(player: Player, blackjack: Blackjack): Promise<void> {
       console.log(`Your current balance is: ${player.chips}`);
       // Play Again?
       playAgain =
-        (await rl.question("Play Again? (y/N) ")).toLowerCase() === "y";
+        (await rl.question("Play Again? (Y/n) ")).toLowerCase() !== "n";
     }
   } while (playAgain);
 }
@@ -114,10 +114,10 @@ async function main(): Promise<void> {
   const player = new Player(100);
   const blackjack = new Blackjack([player]);
 
-  /** Greeting */
+  /* Greeting */
   console.log("Welcome.");
   await game(player, blackjack);
-  console.log("Thanks for playing!");
+  console.log("Goodbye!");
   rl.close();
 }
 

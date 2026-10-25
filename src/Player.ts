@@ -8,6 +8,8 @@ export class Player extends Person {
     public bet: number = 0,
     /** Whether the player is done playing or not */
     public isDone: boolean = false,
+    /** Whether the player has insurance or not */
+    public insurance: boolean = false,
   ) {
     super();
   }
@@ -46,5 +48,12 @@ export class Player extends Person {
   push(): void {
     this.chips += this.bet;
     this.bet = 0;
+  }
+
+  /**
+   * Whether the player has insurance or not
+   */
+  get hasInsurance(): boolean {
+    return this.insurance;
   }
 }
