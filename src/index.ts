@@ -122,7 +122,10 @@ async function main(): Promise<void> {
 }
 
 // Main logic
-main().catch((err) => {
-  console.log(`\nSomething went wrong: ${err}`);
+try {
+  await main();
+} catch (e) {
+  const err = e instanceof Error ? e : new Error(String(e));
+  console.log(`\nOops: ${err.name} - ${err.message}`);
   rl.close();
-});
+}
